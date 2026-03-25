@@ -23,6 +23,58 @@ public class LocalController {
 
     @PostMapping
     public Local criar(@RequestBody Local local) {
+
+        if (local.getNome() == null || local.getNome().isBlank()) {
+            throw new RuntimeException("Nome é obrigatório");
+        }
+
+        if (local.getCapacidade() <= 0) {
+            throw new RuntimeException("Capacidade inválida");
+        }
+
+        if (local.getCep() == null || local.getCep().isBlank()) {
+            throw new RuntimeException("CEP é obrigatório");
+        }
+
+        if (!local.getCep().matches("\\d{5}-?\\d{3}")) {
+            throw new RuntimeException("CEP inválido");
+        }
+
+        if (local.getNumero() <= 0) {
+            throw new RuntimeException("Número é obrigatório");
+        }
+
+        if (!local.getEstado().equals("AC") &&
+                !local.getEstado().equals("AL") &&
+                !local.getEstado().equals("AP") &&
+                !local.getEstado().equals("AM") &&
+                !local.getEstado().equals("BA") &&
+                !local.getEstado().equals("CE") &&
+                !local.getEstado().equals("DF") &&
+                !local.getEstado().equals("ES") &&
+                !local.getEstado().equals("GO") &&
+                !local.getEstado().equals("MA") &&
+                !local.getEstado().equals("MT") &&
+                !local.getEstado().equals("MS") &&
+                !local.getEstado().equals("MG") &&
+                !local.getEstado().equals("PA") &&
+                !local.getEstado().equals("PB") &&
+                !local.getEstado().equals("PR") &&
+                !local.getEstado().equals("PE") &&
+                !local.getEstado().equals("PI") &&
+                !local.getEstado().equals("RJ") &&
+                !local.getEstado().equals("RN") &&
+                !local.getEstado().equals("RS") &&
+                !local.getEstado().equals("RO") &&
+                !local.getEstado().equals("RR") &&
+                !local.getEstado().equals("SC") &&
+                !local.getEstado().equals("SP") &&
+                !local.getEstado().equals("SE") &&
+                !local.getEstado().equals("TO")) {
+
+            throw new RuntimeException("Estado inválido");
+        }
+
         try {
             String url = "https://viacep.com.br/ws/" + local.getCep() + "/json/";
 
@@ -39,13 +91,6 @@ public class LocalController {
 
         } catch (Exception e) {
             System.out.println("Cep não encontrado");
-        }
-        if (local.getNome() == null || local.getNome().isEmpty()) {
-            throw new RuntimeException("Nome é obrigatório");
-        }
-
-        if (local.getCapacidade() <= 0) {
-            throw new RuntimeException("Capacidade inválida");
         }
 
         return localRepository.save(local);
