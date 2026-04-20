@@ -28,14 +28,19 @@ public class Evento {
 
     private String titulo;
 
-    private int vagas;
+    private Integer vagas;
 
     private Long localId;
 
     private Long palestranteId;
 
-    @Transient
-    private List<Usuario> participantes;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "evento_participantes",
+            joinColumns = @JoinColumn(name = "evento_id"),
+            inverseJoinColumns = @JoinColumn(name = "usuario_id")
+    )
+    private List<Usuario> participantes = new java.util.ArrayList<>();
 
 
 }

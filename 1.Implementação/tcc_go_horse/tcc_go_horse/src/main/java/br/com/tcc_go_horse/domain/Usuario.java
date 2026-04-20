@@ -2,6 +2,7 @@ package br.com.tcc_go_horse.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity(name = "Usuario")
 @Table(name = "usuarios")
@@ -17,6 +18,7 @@ public class Usuario {
 
     private String email;
 
+    @JsonIgnore
     private String senha;
 
     private String nome;

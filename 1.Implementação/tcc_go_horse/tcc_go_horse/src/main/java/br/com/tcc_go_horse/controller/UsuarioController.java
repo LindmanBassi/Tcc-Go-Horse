@@ -24,39 +24,39 @@ public class UsuarioController {
         usuario.setId(null);
 
         if (usuario.getNome() == null || usuario.getNome().isBlank()) {
-            throw new RuntimeException("Nome é obrigatório");
+            throw new RuntimeException("O nome é obrigatório.");
         }
 
         if (usuario.getEmail() == null || usuario.getEmail().isBlank()) {
-            throw new RuntimeException("Email é obrigatório");
+            throw new RuntimeException("O email é obrigatório.");
         }
 
         if (!usuario.getEmail().contains("@") || !usuario.getEmail().contains(".")) {
-            throw new RuntimeException("Email inválido");
+            throw new RuntimeException("Informe um email válido.    ");
         }
 
         if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
-            throw new RuntimeException("Senha é obrigatória");
+            throw new RuntimeException("A senha é obrigatória.");
         }
 
         if (usuario.getSenha().length() < 6) {
-            throw new RuntimeException("Senha deve ter no mínimo 6 caracteres");
+            throw new RuntimeException("A senha deve ter no mínimo 6 caracteres.");
         }
 
         if (usuario.getCpf() == null || usuario.getCpf().isBlank()) {
-            throw new RuntimeException("CPF é obrigatório");
+            throw new RuntimeException("O CPF é obrigatório.");
         }
 
         if (!usuario.getCpf().matches("\\d{11}")) {
-            throw new RuntimeException("CPF deve ter 11 dígitos numéricos");
+            throw new RuntimeException("O CPF deve conter 11 dígitos numéricos.");
         }
 
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            throw new RuntimeException("Email já cadastrado");
+            throw new RuntimeException("E-mail já cadastrado!");
         }
 
         if (usuarioRepository.existsByCpf(usuario.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado");
+            throw new RuntimeException("CPF já cadastrado!");
         }
 
         usuario.setCargo("VISITANTE");
@@ -99,23 +99,29 @@ public class UsuarioController {
 
             Usuario usuario = usuarioOpt.get();
 
-            usuario.setNome(novo.getNome());
-            usuario.setEmail(novo.getEmail());
-            usuario.setCpf(novo.getCpf());
+            if (novo.getNome() != null && !novo.getNome().isBlank()) {
+                usuario.setNome(novo.getNome());
+            }
 
-            // senha em texto puro 😈
-            if (novo.getSenha() != null) {
+            if (novo.getEmail() != null && novo.getEmail().contains("@") && novo.getEmail().contains(".")) {
+                usuario.setEmail(novo.getEmail());
+            }
+
+            if (novo.getCpf() != null && novo.getCpf().matches("\\d{11}")) {
+                usuario.setCpf(novo.getCpf());
+            }
+
+            if (novo.getSenha() != null && novo.getSenha().length() >= 6) {
                 usuario.setSenha(novo.getSenha());
             }
 
-            if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-                throw new RuntimeException("Email já cadastrado");
+            if (usuarioRepository.existsByEmailAndIdNot(usuario.getEmail(), id)) {
+                throw new RuntimeException("E-mail já cadastrado!");
             }
 
-            if (usuarioRepository.existsByCpf(usuario.getCpf())) {
-                throw new RuntimeException("CPF já cadastrado");
+            if (usuarioRepository.existsByCpfAndIdNot(usuario.getCpf(), id)) {
+                throw new RuntimeException("CPF já cadastrado!");
             }
-
             return usuarioRepository.save(usuario);
         }
 

@@ -18,7 +18,7 @@ public class Local {
 
     private String nome;
 
-    private int capacidade;
+    private Integer capacidade;
 
     private String cidade;
 

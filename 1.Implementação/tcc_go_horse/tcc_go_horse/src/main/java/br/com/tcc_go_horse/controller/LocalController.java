@@ -25,72 +25,50 @@ public class LocalController {
     public Local criar(@RequestBody Local local) {
 
         if (local.getNome() == null || local.getNome().isBlank()) {
-            throw new RuntimeException("Nome é obrigatório");
+            throw new RuntimeException("O nome é obrigatório.");
+        }
+
+        boolean nomeExiste = localRepository.findAll()
+                .stream()
+                .anyMatch(l -> l.getNome().equalsIgnoreCase(local.getNome()));
+
+        if (nomeExiste) {
+            throw new RuntimeException("Já existe um local com esse nome.");
         }
 
         if (local.getCapacidade() <= 0) {
-            throw new RuntimeException("Capacidade inválida");
+            throw new RuntimeException("A capacidade deve ser maior que zero.");
         }
 
         if (local.getCep() == null || local.getCep().isBlank()) {
-            throw new RuntimeException("CEP é obrigatório");
+            throw new RuntimeException("O CEP é obrigatório.");
         }
 
         if (!local.getCep().matches("\\d{5}-?\\d{3}")) {
-            throw new RuntimeException("CEP inválido");
+            throw new RuntimeException("CEP inválido ou não encontrado.");
         }
 
         if (local.getNumero() <= 0) {
-            throw new RuntimeException("Número é obrigatório");
-        }
-
-        if (!local.getEstado().equals("AC") &&
-                !local.getEstado().equals("AL") &&
-                !local.getEstado().equals("AP") &&
-                !local.getEstado().equals("AM") &&
-                !local.getEstado().equals("BA") &&
-                !local.getEstado().equals("CE") &&
-                !local.getEstado().equals("DF") &&
-                !local.getEstado().equals("ES") &&
-                !local.getEstado().equals("GO") &&
-                !local.getEstado().equals("MA") &&
-                !local.getEstado().equals("MT") &&
-                !local.getEstado().equals("MS") &&
-                !local.getEstado().equals("MG") &&
-                !local.getEstado().equals("PA") &&
-                !local.getEstado().equals("PB") &&
-                !local.getEstado().equals("PR") &&
-                !local.getEstado().equals("PE") &&
-                !local.getEstado().equals("PI") &&
-                !local.getEstado().equals("RJ") &&
-                !local.getEstado().equals("RN") &&
-                !local.getEstado().equals("RS") &&
-                !local.getEstado().equals("RO") &&
-                !local.getEstado().equals("RR") &&
-                !local.getEstado().equals("SC") &&
-                !local.getEstado().equals("SP") &&
-                !local.getEstado().equals("SE") &&
-                !local.getEstado().equals("TO")) {
-
-            throw new RuntimeException("Estado inválido");
+            throw new RuntimeException("O número é obrigatório.");
         }
 
         try {
             String url = "https://viacep.com.br/ws/" + local.getCep() + "/json/";
-
             RestTemplate restTemplate = new RestTemplate();
 
             Map response = restTemplate.getForObject(url, Map.class);
 
-            if (response != null) {
-                local.setRua((String) response.get("logradouro"));
-                local.setBairro((String) response.get("bairro"));
-                local.setCidade((String) response.get("localidade"));
-                local.setEstado((String) response.get("uf"));
+            if (response == null || response.get("logradouro") == null) {
+                throw new RuntimeException("CEP inválido ou não encontrado.");
             }
 
+            local.setRua((String) response.get("logradouro"));
+            local.setBairro((String) response.get("bairro"));
+            local.setCidade((String) response.get("localidade"));
+            local.setEstado((String) response.get("uf"));
+
         } catch (Exception e) {
-            System.out.println("Cep não encontrado");
+            throw new RuntimeException("Erro ao consultar CEP");
         }
 
         return localRepository.save(local);
@@ -123,10 +101,28 @@ public class LocalController {
             Local local = localOpt.get();
 
             if (novoLocal.getNome() != null) {
+
+                boolean nomeExiste = localRepository.findAll()
+                        .stream()
+                        .anyMatch(l -> l.getNome().equalsIgnoreCase(novoLocal.getNome())
+                                && !l.getId().equals(id));
+
+                if (nomeExiste) {
+                    throw new RuntimeException("Já existe um local com esse nome.");
+                }
+
                 local.setNome(novoLocal.getNome());
             }
 
-            if (novoLocal.getCapacidade() > 0) {
+            if (novoLocal.getCapacidade() != null && novoLocal.getCapacidade() > 0) {
+
+                boolean temEventoInvalido = eventoRepository.findAll().stream()
+                        .anyMatch(e -> e.getLocalId().equals(id) && e.getVagas() > novoLocal.getCapacidade());
+
+                if (temEventoInvalido) {
+                    throw new RuntimeException("Capacidade menor que vagas de eventos existentes");
+                }
+
                 local.setCapacidade(novoLocal.getCapacidade());
             }
 
@@ -135,7 +131,32 @@ public class LocalController {
             local.setRua(novoLocal.getRua());
             local.setNumero(novoLocal.getNumero());
             local.setBairro(novoLocal.getBairro());
-            local.setCep(novoLocal.getCep());
+            if (novoLocal.getCep() != null) {
+
+                if (!novoLocal.getCep().matches("\\d{5}-?\\d{3}")) {
+                    throw new RuntimeException("CEP inválido");
+                }
+
+                try {
+                    String url = "https://viacep.com.br/ws/" + novoLocal.getCep() + "/json/";
+                    RestTemplate restTemplate = new RestTemplate();
+
+                    Map response = restTemplate.getForObject(url, Map.class);
+
+                    if (response == null || response.get("logradouro") == null) {
+                        throw new RuntimeException("CEP inválido ou não encontrado");
+                    }
+
+                    local.setRua((String) response.get("logradouro"));
+                    local.setBairro((String) response.get("bairro"));
+                    local.setCidade((String) response.get("localidade"));
+                    local.setEstado((String) response.get("uf"));
+                    local.setCep(novoLocal.getCep());
+
+                } catch (Exception e) {
+                    throw new RuntimeException("Erro ao consultar CEP");
+                }
+            }
 
             return localRepository.save(local);
 
@@ -151,8 +172,12 @@ public class LocalController {
 
         if (local.isPresent()) {
 
-            if (!eventoRepository.findAll().isEmpty()) {
-                System.out.println("Verificando eventos antes de deletar...");
+            boolean temEvento = eventoRepository.findAll()
+                    .stream()
+                    .anyMatch(e -> e.getLocalId().equals(id));
+
+            if (temEvento) {
+                throw new RuntimeException("Não é possível deletar local com eventos vinculados");
             }
 
             localRepository.deleteById(id);
