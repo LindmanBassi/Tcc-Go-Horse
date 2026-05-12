@@ -5,6 +5,7 @@ import br.com.tcc_go_horse.repositories.LocalRepository;
 import br.com.tcc_go_horse.repositories.EventoRepository;
 
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,6 +22,7 @@ public class LocalController {
 
     private final EventoRepository eventoRepository;
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @PostMapping
     public Local criar(@RequestBody Local local) {
 
@@ -70,15 +72,16 @@ public class LocalController {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao consultar CEP");
         }
-
         return localRepository.save(local);
     }
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @GetMapping
     public List<Local> listar() {
         return localRepository.findAll();
     }
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @GetMapping("/{id}")
     public Local buscarPorId(@PathVariable Long id) {
 
@@ -91,6 +94,7 @@ public class LocalController {
         }
     }
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @PutMapping("/{id}")
     public Local atualizar(@PathVariable Long id, @RequestBody Local novoLocal) {
 
@@ -117,7 +121,9 @@ public class LocalController {
             if (novoLocal.getCapacidade() != null && novoLocal.getCapacidade() > 0) {
 
                 boolean temEventoInvalido = eventoRepository.findAll().stream()
-                        .anyMatch(e -> e.getLocalId().equals(id) && e.getVagas() > novoLocal.getCapacidade());
+                        .anyMatch(e -> e.getLocal() != null
+                                && e.getLocal().getId().equals(id)
+                                && e.getVagas() > novoLocal.getCapacidade());
 
                 if (temEventoInvalido) {
                     throw new RuntimeException("Capacidade menor que vagas de eventos existentes");
@@ -165,6 +171,7 @@ public class LocalController {
         }
     }
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable Long id) {
 
@@ -174,7 +181,8 @@ public class LocalController {
 
             boolean temEvento = eventoRepository.findAll()
                     .stream()
-                    .anyMatch(e -> e.getLocalId().equals(id));
+                    .anyMatch(e -> e.getLocal() != null
+                            && e.getLocal().getId().equals(id));
 
             if (temEvento) {
                 throw new RuntimeException("Não é possível deletar local com eventos vinculados");

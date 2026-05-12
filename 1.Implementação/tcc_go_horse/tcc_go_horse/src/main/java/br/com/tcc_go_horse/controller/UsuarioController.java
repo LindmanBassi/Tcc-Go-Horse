@@ -5,6 +5,8 @@ import br.com.tcc_go_horse.repositories.UsuarioRepository;
 
 import lombok.AllArgsConstructor;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +19,7 @@ public class UsuarioController {
 
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping
     public Usuario criar(@RequestBody Usuario usuario) {
@@ -32,7 +35,7 @@ public class UsuarioController {
         }
 
         if (!usuario.getEmail().contains("@") || !usuario.getEmail().contains(".")) {
-            throw new RuntimeException("Informe um email válido.    ");
+            throw new RuntimeException("Informe um email válido.");
         }
 
         if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
@@ -63,10 +66,11 @@ public class UsuarioController {
         usuario.setDepartamento(null);
 
 
-        usuario.setSenha(usuario.getSenha());
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
 
         return usuarioRepository.save(usuario);
     }
+
 
     @GetMapping
     public List<Usuario> listar() {
@@ -78,6 +82,12 @@ public class UsuarioController {
         return usuarios;
     }
 
+    @GetMapping("/palestrantes")
+    public List<Usuario> listarPalestrantes() {
+        return usuarioRepository.findAll();
+    }
+
+    @PreAuthorize("hasRole('GERENTE')")
     @GetMapping("/{id}")
     public Usuario buscar(@PathVariable Long id) {
 
@@ -90,6 +100,7 @@ public class UsuarioController {
         throw new RuntimeException("Usuário não encontrado");
     }
 
+    @PreAuthorize("hasRole('GERENTE')")
     @PutMapping("/{id}")
     public Usuario atualizar(@PathVariable Long id, @RequestBody Usuario novo) {
 
@@ -112,7 +123,7 @@ public class UsuarioController {
             }
 
             if (novo.getSenha() != null && novo.getSenha().length() >= 6) {
-                usuario.setSenha(novo.getSenha());
+                usuario.setSenha(passwordEncoder.encode(novo.getSenha()));
             }
 
             if (usuarioRepository.existsByEmailAndIdNot(usuario.getEmail(), id)) {
@@ -128,6 +139,7 @@ public class UsuarioController {
         throw new RuntimeException("Usuário não encontrado");
     }
 
+    @PreAuthorize("hasRole('GERENTE')")
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable Long id) {
 

@@ -8,8 +8,10 @@ import br.com.tcc_go_horse.repositories.UsuarioRepository;
 import br.com.tcc_go_horse.repositories.LocalRepository;
 
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +27,7 @@ public class EventoController {
     private final UsuarioRepository usuarioRepository;
     private final LocalRepository localRepository;
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @PostMapping
     public Evento criar(@RequestBody Evento evento) {
 
@@ -69,23 +72,22 @@ public class EventoController {
 
         if (!evento.getTipoEvento().equals("REMOTO")) {
 
-            if (evento.getLocalId() == null) {
+            if (evento.getLocal() == null || evento.getLocal().getId() == null) {
                 throw new RuntimeException("Local obrigatório para evento presencial");
             }
 
-            Optional<Local> localOpt = localRepository.findById(evento.getLocalId());
+            Local local = localRepository.findById(evento.getLocal().getId())
+                    .orElseThrow(() -> new RuntimeException("Local não encontrado"));
 
-            if (localOpt.isEmpty()) {
-                throw new RuntimeException("Local não encontrado");
-            }
-            Local local = localOpt.get();
+            evento.setLocal(local);
+
 
             if (evento.getVagas() > local.getCapacidade()) {
                 throw new RuntimeException("Vagas maior que capacidade do local");
             }
 
         } else {
-            evento.setLocalId(null);
+            evento.setLocal(null);
         }
 
         if (evento.getPalestranteId() != null) {
@@ -96,13 +98,8 @@ public class EventoController {
                 throw new RuntimeException("Palestrante não encontrado");
             }
 
-            Usuario palestrante = userOpt.get();
 
-            if (palestrante.getCargo() != null &&
-                    palestrante.getCargo().equals("VISITANTE")) {
 
-                throw new RuntimeException("Visitante não pode ser palestrante");
-            }
         }
 
         if (evento.getData().before(new Date())) {
@@ -117,6 +114,7 @@ public class EventoController {
         return eventoRepository.findAll();
     }
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @GetMapping("/{id}")
     public Evento buscarPorId(@PathVariable Long id) {
 
@@ -129,11 +127,21 @@ public class EventoController {
         }
     }
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @PutMapping("/{id}")
     public Evento atualizar(@PathVariable Long id, @RequestBody Evento novoEvento) {
 
+
         Evento evento = eventoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Evento não encontrado"));
+
+        String tipoFinal = novoEvento.getTipoEvento() != null
+                ? novoEvento.getTipoEvento()
+                : evento.getTipoEvento();
+
+        Integer vagasFinal = novoEvento.getVagas() != null
+                ? novoEvento.getVagas()
+                : evento.getVagas();
 
         if ("FECHADO".equals(evento.getEstadoEvento())) {
             throw new RuntimeException("Evento já fechado");
@@ -165,9 +173,6 @@ public class EventoController {
         } else if (novoEvento.getEstadoEvento() != null) {
             evento.setEstadoEvento(novoEvento.getEstadoEvento());
         }
-        String tipoFinal = novoEvento.getTipoEvento() != null
-                ? novoEvento.getTipoEvento()
-                : evento.getTipoEvento();
 
         if (tipoFinal != null &&
                 !tipoFinal.equals("REMOTO") &&
@@ -180,23 +185,23 @@ public class EventoController {
         if (novoEvento.getTipoEvento() != null) {
             evento.setTipoEvento(novoEvento.getTipoEvento());
         }
-
         if (!"REMOTO".equals(tipoFinal)) {
 
-            if (novoEvento.getLocalId() != null) {
-
-                Local local = localRepository.findById(novoEvento.getLocalId())
-                        .orElseThrow(() -> new RuntimeException("Local não encontrado"));
-
-                if (evento.getVagas() != null && evento.getVagas() > local.getCapacidade()) {
-                    throw new RuntimeException("Vagas maior que capacidade do local");
-                }
-
-                evento.setLocalId(novoEvento.getLocalId());
+            if (novoEvento.getLocal() == null || novoEvento.getLocal().getId() == null) {
+                throw new RuntimeException("Local obrigatório para evento presencial");
             }
 
+            Local local = localRepository.findById(novoEvento.getLocal().getId())
+                    .orElseThrow(() -> new RuntimeException("Local não encontrado"));
+
+            if (vagasFinal != null && vagasFinal > local.getCapacidade()) {
+                throw new RuntimeException("Vagas maior que capacidade do local");
+            }
+
+            evento.setLocal(local);
+
         } else {
-            evento.setLocalId(null);
+            evento.setLocal(null);
         }
         if (novoEvento.getPalestranteId() != null) {
 
@@ -213,6 +218,7 @@ public class EventoController {
         return eventoRepository.save(evento);
     }
 
+    @PreAuthorize("!hasRole('VISITANTE')")
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable Long id) {
 
@@ -260,5 +266,28 @@ public class EventoController {
         evento.setParticipantes(participantes);
 
         return eventoRepository.save(evento);
+    }
+
+    @GetMapping("/usuario/{usuarioId}")
+    public List<Evento> meusEventos(@PathVariable Long usuarioId) {
+
+        List<Evento> eventos = eventoRepository.findAll();
+
+        return eventos.stream()
+                .filter(e -> e.getParticipantes() != null &&
+                        e.getParticipantes().stream()
+                                .anyMatch(u -> u.getId().equals(usuarioId)))
+                .toList();
+    }
+
+    @GetMapping("/{eventoId}/usuarios")
+    public List<Usuario> participantes(@PathVariable Long eventoId) {
+
+        Evento evento = eventoRepository.findById(eventoId)
+                .orElseThrow(() -> new RuntimeException("Evento não encontrado"));
+
+        return evento.getParticipantes() != null
+                ? evento.getParticipantes()
+                : new ArrayList<>();
     }
 }
