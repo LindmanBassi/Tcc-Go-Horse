@@ -30,7 +30,9 @@ public class Evento {
 
     private Integer vagas;
 
-    private Long localId;
+    @ManyToOne
+    @JoinColumn(name = "local_id")
+    private Local local;
 
     private Long palestranteId;
 

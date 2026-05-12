@@ -4,6 +4,8 @@ import br.com.tcc_go_horse.domain.Usuario;
 import br.com.tcc_go_horse.repositories.UsuarioRepository;
 
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +17,9 @@ import java.util.Optional;
 public class FuncionarioController {
 
     private  final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
+    @PreAuthorize("hasRole('GERENTE')")
     @PostMapping
     public Usuario criar(@RequestBody Usuario usuario) {
 
@@ -82,11 +86,12 @@ public class FuncionarioController {
             throw new RuntimeException("Departamento inválido");
         }
 
-        usuario.setSenha(usuario.getSenha());
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
 
         return usuarioRepository.save(usuario);
     }
 
+    @PreAuthorize("hasRole('GERENTE')")
     @GetMapping
     public List<Usuario> listar() {
 
@@ -97,6 +102,7 @@ public class FuncionarioController {
         return usuarios;
     }
 
+    @PreAuthorize("hasRole('GERENTE')")
     @GetMapping("/{id}")
     public Usuario buscar(@PathVariable Long id) {
 
@@ -109,6 +115,7 @@ public class FuncionarioController {
         throw new RuntimeException("Funcionário não encontrado");
     }
 
+    @PreAuthorize("hasRole('GERENTE')")
     @PutMapping("/{id}")
     public Usuario atualizar(@PathVariable Long id, @RequestBody Usuario novo) {
 
@@ -166,7 +173,8 @@ public class FuncionarioController {
                 if (novo.getSenha().length() < 6) {
                     throw new RuntimeException("A senha deve ter no mínimo 6 caracteres.");
                 }
-                usuario.setSenha(novo.getSenha());
+                //aaa
+                usuario.setSenha(passwordEncoder.encode(novo.getSenha()));
             }
 
             if (usuarioRepository.existsByEmailAndIdNot(usuario.getEmail(), id)) {
@@ -183,6 +191,7 @@ public class FuncionarioController {
         throw new RuntimeException("Funcionário não encontrado");
     }
 
+    @PreAuthorize("hasRole('GERENTE')")
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable Long id) {
 
