@@ -51,7 +51,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         System.out.println("Token final: " + token);
 
-       
+
         if (token == null) {
             filterChain.doFilter(request, response);
             return;
