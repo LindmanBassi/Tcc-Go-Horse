@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fd7c6a8a-483c-4332-b5fe-9dfe82fe3b01" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/tcc_go_horse/src/main/java/br/com/tcc_go_horse/controller/UsuarioController.java" beforeDir="false" afterPath="$PROJECT_DIR$/tcc_go_horse/src/main/java/br/com/tcc_go_horse/controller/UsuarioController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../2.Analise e Design/TCC - Modelo Analise e Design.asta.lock" beforeDir="false" />
-    </list>
+    <list default="true" id="fd7c6a8a-483c-4332-b5fe-9dfe82fe3b01" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,21 +13,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "LindmanBassi"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;LindmanBassi&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/LindmanBassi/Tcc-Go-Horse.git",
-    "accountId": "1058dd32-3251-4f9b-bd16-b0ad43f7de72"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/LindmanBassi/Tcc-Go-Horse.git&quot;,
+    &quot;accountId&quot;: &quot;1058dd32-3251-4f9b-bd16-b0ad43f7de72&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="3CUbbbS3PHGdOvX1VO63Abd2hZU" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -41,10 +38,10 @@
     "Application.TccGoHorseApplication.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "#10 on 9-featurecriar-controlerservice-d…nario",
+    "git-widget-placeholder": "15-featurecolocar-1-versao-do-front",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/hnrqb/OneDrive/Desktop/Tcc-Solid-Go-Horse/1.Implementação/tcc_go_horse",
+    "last_opened_file_path": "C:/Users/hnrqb/OneDrive/Desktop/Tcc-Solid-Go-Horse/1.Implementação/tcc_go_horse/tcc_go_horse",
     "settings.editor.selected.configurable": "com.poratu.idea.plugins.tomcat.setting.TomcatServersConfigurable"
   }
 }]]></component>
